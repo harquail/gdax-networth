@@ -4,7 +4,7 @@ It reads [GDAX API keys](https://support.gdax.com/customer/en/portal/articles/24
 
 To print the value in a different currency, change the BASE_CURRENCY constant.
 
-##Example use case
+## Example use case
 
 To save net worth history to a log file, one might set up a cron job that runs ```node printNetWorth.js >> accountHistory.txt``` periodically.
  

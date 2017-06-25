@@ -1,0 +1,15 @@
+{
+  "name": "gdax-networth",
+  "version": "1.0.0",
+  "description": "",
+  "main": "printNetWorth.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node printNetWorth.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "gdax": "^0.4.2"
+  }
+}

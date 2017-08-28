@@ -1,6 +1,6 @@
 Simple script that prints the total value of all cryptocurrency holdings in a GDAX account in a base fiat currency.  
 
-It reads [GDAX API keys](https://support.gdax.com/customer/en/portal/articles/2425383-how-can-i-create-an-api-key-for-gdax-) from 'readFromGdaxKey.json' to authenticate.
+It reads [GDAX API keys](https://support.gdax.com/customer/en/portal/articles/2425383-how-can-i-create-an-api-key-for-gdax-) from 'gdaxConfig.json' to authenticate.
 
 To print the value in a different currency, change the BASE_CURRENCY constant.
 

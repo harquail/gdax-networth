@@ -2,7 +2,7 @@ const Gdax = require('gdax');
 const BASE_CURRENCY = 'USD';
 
 /** @const {key:string, secret:string, pass:string} */
-const credentials = require('./readFromGdaxKey.json');
+const credentials = require('./gdaxConfig.json');
 
 const productsPromise = new Promise((resolve, reject) => {
     const publicClient = new Gdax.PublicClient();
@@ -49,7 +49,7 @@ const accountHoldingsPromise = new Promise((resolve, reject) => {
 
 
 /// print net worth by currency
-console.log(`\n${new Date().toISOString()}\n GDAX net worth in ${BASE_CURRENCY}:`);
+console.log(`\n${new Date().toISOString()}\n Trezor + GDAX net worth in ${BASE_CURRENCY}:`);
 productsPromise.then(
     (products) => {
         const toFiatProducts = products.filter((product) => { return product.quote_currency === BASE_CURRENCY })
@@ -73,13 +73,17 @@ productsPromise.then(
                     const matchingCurrency = currencyValues.find((c) => {
                         return (c.product === `${holding.currency}-${BASE_CURRENCY}`);
                     })
+                    if (credentials.otherBalances && credentials.otherBalances[holding.currency]) {
+                        holding.balance = Number(credentials.otherBalances[holding.currency]) + Number(holding.balance);
+                    }
                     const value = holding.balance * matchingCurrency.price;
                     holdings[holding.currency] = value;
+
                 }
             }
             console.log(holdings);
             // sum all currencies
             let total = Object.keys(holdings).reduce((p, c, i) => { return p + holdings[c] }, 0);
-            console.log(total);
+            console.log(`$${Math.round(total)}`);
         });
     });

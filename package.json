@@ -10,6 +10,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "gdax": "^0.4.2"
+    "gdax": "git@github.com:coinbase/gdax-node.git#381b7282825f6df658cf937f7b2edd45016632b6",
+    "minimalist": "^1.0.0"
   }
 }

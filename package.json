@@ -7,10 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node printNetWorth.js"
   },
-  "author": "",
+  "author": "harquail",
   "license": "MIT",
   "dependencies": {
-    "gdax": "git@github.com:coinbase/gdax-node.git#381b7282825f6df658cf937f7b2edd45016632b6",
+    "gdax": "latest",
     "minimalist": "^1.0.0"
   }
 }

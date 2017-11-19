@@ -48,7 +48,7 @@ else {
  */
 function buyCurrencyAtMarket(name, amount) {
     var buyParams = {
-        'funds': amount, // USD,
+        'funds': Math.round(amount * 1000) / 1000, // USD,
         'product_id': `${name}-${BASE_CURRENCY}`,
         'type': 'market',
     };

@@ -1,0 +1,15 @@
+{
+  "key":"writekeyhere",
+  "secret:"writesecrethere",
+  "pass":"writepasshere"
+}
+"otherBalances": {
+"BTC": 1.1,
+"LTC": 1.2,
+"ETH": 1.3
+}
+"buyPercentages": {
+"BTC": 0.4,
+"LTC": 0.1,
+"ETH": 0.5
+}

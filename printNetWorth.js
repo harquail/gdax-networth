@@ -3,6 +3,7 @@ const BASE_CURRENCY = 'USD';
 
 /** @const {key:string, secret:string, pass:string} */
 const credentials = require('./gdaxConfig.json');
+const ThrottledPromise = require('throttled-promise');
 
 const productsPromise = new Promise((resolve, reject) => {
     const publicClient = new Gdax.PublicClient();
@@ -22,7 +23,7 @@ const productsPromise = new Promise((resolve, reject) => {
  * @return {Promise<{product: string, price: number}>}
  */
 function pricePromiseFactory(product) {
-    return new Promise((resolve, reject) => {
+    return new ThrottledPromise((resolve, reject) => {
         const publicClient = new Gdax.PublicClient(product);
         publicClient.getProductTicker((err, response, data) => {
             if (err || response.statusCode > 300) {
@@ -35,7 +36,7 @@ function pricePromiseFactory(product) {
     });
 }
 
-const accountHoldingsPromise = new Promise((resolve, reject) => {
+const accountHoldingsPromise = new ThrottledPromise((resolve, reject) => {
     const authedClient = new Gdax.AuthenticatedClient(credentials.key, credentials.secret, credentials.pass);
     authedClient.getAccounts((err, response, data) => {
         if (err || response.statusCode > 300) {
@@ -59,7 +60,7 @@ productsPromise.then(
 
         // wait for the account and all prices to return
         const allPromises = [accountHoldingsPromise].concat(toFiatPromises);
-        Promise.all(allPromises).then((data) => {
+        ThrottledPromise.all(allPromises,1).then((data) => {
             const accountHoldings = data.shift();
             const currencyValues = data;
             // will hold source currency values in base currency

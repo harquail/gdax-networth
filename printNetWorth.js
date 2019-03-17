@@ -3,46 +3,53 @@ const BASE_CURRENCY = 'USD';
 
 /** @const {key:string, secret:string, pass:string} */
 const credentials = require('./gdaxConfig.json');
-const ThrottledPromise = require('throttled-promise');
+const Promise = require('bluebird');
 
 const productsPromise = new Promise((resolve, reject) => {
     const publicClient = new Gdax.PublicClient();
     publicClient.getProducts((err, response, data) => {
         if (err || response.statusCode > 300) {
-            reject(data);
-        }
-        else {
+            console.error(response.body);
+            reject(response.body);
+        } else {
             resolve(data);
         }
     });
 });
 
 
+function slowItDown(p) {
+    return p.delay(100)
+}
+
 /**
  * @param {string} product 
  * @return {Promise<{product: string, price: number}>}
  */
 function pricePromiseFactory(product) {
-    return new ThrottledPromise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         const publicClient = new Gdax.PublicClient(product);
         publicClient.getProductTicker((err, response, data) => {
             if (err || response.statusCode > 300) {
-                reject(data);
-            }
-            else if (data) {
-                resolve({ product: product, price: data.price });
+                console.error(response.body);
+                reject(response.body);
+            } else if (data) {
+                resolve({
+                    product: product,
+                    price: data.price
+                });
             }
         });
     });
 }
 
-const accountHoldingsPromise = new ThrottledPromise((resolve, reject) => {
+const accountHoldingsPromise = new Promise((resolve, reject) => {
     const authedClient = new Gdax.AuthenticatedClient(credentials.key, credentials.secret, credentials.pass);
     authedClient.getAccounts((err, response, data) => {
         if (err || response.statusCode > 300) {
-            reject(data);
-        }
-        else {
+            console.error(response.body);
+            reject(response.body);
+        } else {
             resolve(data);
         }
     });
@@ -53,14 +60,17 @@ const accountHoldingsPromise = new ThrottledPromise((resolve, reject) => {
 console.log(`\n${new Date().toISOString()}\n Trezor + GDAX net worth in ${BASE_CURRENCY}:`);
 productsPromise.then(
     (products) => {
-        const toFiatProducts = products.filter((product) => { return product.quote_currency === BASE_CURRENCY })
+        const toFiatProducts = products.filter((product) => {
+            return product.quote_currency === BASE_CURRENCY
+        })
         const toFiatPromises = toFiatProducts.map((p) => {
             return pricePromiseFactory(p.id)
         });
 
         // wait for the account and all prices to return
-        const allPromises = [accountHoldingsPromise].concat(toFiatPromises);
-        ThrottledPromise.all(allPromises,1).then((data) => {
+        let allPromises = [accountHoldingsPromise].concat(toFiatPromises);
+        allPromises = allPromises.map(slowItDown);
+        Promise.all(allPromises, 1).then((data) => {
             const accountHoldings = data.shift();
             const currencyValues = data;
             // will hold source currency values in base currency
@@ -68,8 +78,7 @@ productsPromise.then(
             for (holding of accountHoldings) {
                 if (holding.currency === BASE_CURRENCY) {
                     holdings[holding.currency] = Number(holding.balance);
-                }
-                else {
+                } else {
                     // get value in base currency of each source currency
                     const matchingCurrency = currencyValues.find((c) => {
                         return (c.product === `${holding.currency}-${BASE_CURRENCY}`);
@@ -84,7 +93,9 @@ productsPromise.then(
             }
             console.log(holdings);
             // sum all currencies
-            let total = Object.keys(holdings).reduce((p, c, i) => { return p + holdings[c] }, 0);
+            let total = Object.keys(holdings).reduce((p, c, i) => {
+                return p + holdings[c]
+            }, 0);
             console.log(`$${Math.round(total)}`);
         });
     });

@@ -10,8 +10,8 @@
   "author": "harquail",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.5.3",
     "gdax": "git://github.com/coinbase/gdax-node.git#v0.5.0",
-    "minimalist": "^1.0.0",
-    "throttled-promise": "^1.0.1"
+    "minimalist": "^1.0.0"
   }
 }

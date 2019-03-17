@@ -18,6 +18,10 @@ const productsPromise = new Promise((resolve, reject) => {
 });
 
 
+/**
+ * Slows a promise by 100 ms
+ * @param {Promise<any>} p 
+ */
 function slowItDown(p) {
     return p.delay(100)
 }

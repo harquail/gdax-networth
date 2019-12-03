@@ -1,4 +1,4 @@
-const Gdax = require('gdax');
+const Gdax = require('coinbase-pro');
 const BASE_CURRENCY = 'USD';
 
 /** @const {key:string, secret:string, pass:string} */
@@ -17,26 +17,20 @@ const productsPromise = new Promise((resolve, reject) => {
     });
 });
 
-
-/**
- * Slows a promise by 100 ms
- * @param {Promise<any>} p 
- */
-function slowItDown(p) {
-    return p.delay(100)
-}
-
 /**
  * @param {string} product 
  * @return {Promise<{product: string, price: number}>}
  */
-function pricePromiseFactory(product) {
+function pricePromiseFactory(product, backoff = 1) {
+    if (backoff > 1000) {
+        console.log(`delayed by ${backoff} ms`);
+    }
+    backoff *= 2
     return new Promise((resolve, reject) => {
-        const publicClient = new Gdax.PublicClient(product);
-        publicClient.getProductTicker((err, response, data) => {
+        const publicClient = new Gdax.PublicClient();
+        publicClient.getProductTicker(product, (err, response, data) => {
             if (err || response.statusCode > 300) {
-                console.error(response.body);
-                reject(response.body);
+                reject(err);
             } else if (data) {
                 resolve({
                     product: product,
@@ -44,7 +38,7 @@ function pricePromiseFactory(product) {
                 });
             }
         });
-    });
+    }).catch(() => Promise.delay(backoff).then(() => pricePromiseFactory(product, backoff)));
 }
 
 const accountHoldingsPromise = new Promise((resolve, reject) => {
@@ -73,7 +67,6 @@ productsPromise.then(
 
         // wait for the account and all prices to return
         let allPromises = [accountHoldingsPromise].concat(toFiatPromises);
-        allPromises = allPromises.map(slowItDown);
         Promise.all(allPromises, 1).then((data) => {
             const accountHoldings = data.shift();
             const currencyValues = data;
@@ -90,8 +83,10 @@ productsPromise.then(
                     if (credentials.otherBalances && credentials.otherBalances[holding.currency]) {
                         holding.balance = Number(credentials.otherBalances[holding.currency]) + Number(holding.balance);
                     }
-                    const value = holding.balance * matchingCurrency.price;
-                    holdings[holding.currency] = value;
+                    if (matchingCurrency) {
+                        const value = holding.balance * matchingCurrency.price;
+                        holdings[holding.currency] = value;
+                    }
 
                 }
             }
